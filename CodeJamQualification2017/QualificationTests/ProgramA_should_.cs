@@ -1,6 +1,7 @@
-﻿using NUnit.Framework;
+﻿using CodeJamQualification2017;
+using NUnit.Framework;
 
-namespace CodeJamQualification2017
+namespace QualificationTests
 {
     internal class ProgramA_should_
     {

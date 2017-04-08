@@ -5,7 +5,7 @@ namespace CodeJamQualification2017
 {
     class ProgramB
     {
-        static void Main(string[] args)
+        static void MainB(string[] args)
         {
             var input = Console.ReadLine();
             var T = Convert.ToInt32(input);
