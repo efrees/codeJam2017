@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace CodeJamQualification2017
@@ -33,6 +32,8 @@ namespace CodeJamQualification2017
 
                 var changes = GetChangesForBestScore(_grid);
 
+                //Console.WriteLine(GridToString(_grid, N));
+
                 var stylePoints = ScoreGrid(_grid);
                 Console.WriteLine($"Case #{k}: {stylePoints} {changes.Count}");
 
@@ -55,8 +56,8 @@ namespace CodeJamQualification2017
                 var currentValue = grid[coords.Row, coords.Col];
                 if (currentValue == 'o') continue;
 
-                if (RowNotUsed(grid, coords.Row)
-                    && ColNotUsed(grid, coords.Col)
+                if (RowNotUsed(grid, coords)
+                    && ColNotUsed(grid, coords)
                     && DiagonalNotUsed(grid, coords))
                 {
                     grid[coords.Row, coords.Col] = 'o';
@@ -66,8 +67,8 @@ namespace CodeJamQualification2017
                 {
                     continue;
                 }
-                else if (RowNotUsed(grid, coords.Row)
-                         && ColNotUsed(grid, coords.Col))
+                else if (RowNotUsed(grid, coords)
+                         && ColNotUsed(grid, coords))
                 {
                     grid[coords.Row, coords.Col] = 'x';
                     changes.Add($"x {coords.Row + 1} {coords.Col + 1}");
@@ -82,23 +83,27 @@ namespace CodeJamQualification2017
             return changes;
         }
 
-        private static bool RowNotUsed(char[,] grid, int row)
+        private static bool RowNotUsed(char[,] grid, GridCoordinates coords)
         {
             var N = (int)Math.Sqrt(grid.Length);
             for (var j = 0; j < N; j++)
             {
-                if (grid[row, j] == 'o' || grid[row, j] == 'x')
+                if (j == coords.Col) continue;
+
+                if (grid[coords.Row, j] == 'o' || grid[coords.Row, j] == 'x')
                     return false;
             }
             return true;
         }
 
-        private static bool ColNotUsed(char[,] grid, int col)
+        private static bool ColNotUsed(char[,] grid, GridCoordinates coords)
         {
             var N = (int)Math.Sqrt(grid.Length);
             for (var i = 0; i < N; i++)
             {
-                if (grid[i, col] == 'o' || grid[i, col] == 'x')
+                if (i == coords.Row) continue;
+
+                if (grid[i, coords.Col] == 'o' || grid[i, coords.Col] == 'x')
                     return false;
             }
             return true;
@@ -112,9 +117,11 @@ namespace CodeJamQualification2017
                 var jFirstDiag = i - coords.Row + coords.Col;
                 var jSecondDiag = coords.Row + coords.Col - i;
                 if (jSecondDiag >= 0 && jSecondDiag < N
+                    && jSecondDiag != coords.Col
                     && (grid[i, jSecondDiag] == 'o' || grid[i, jSecondDiag] == '+'))
                     return false;
                 if (jFirstDiag >= 0 && jFirstDiag < N
+                    && jFirstDiag != coords.Col
                     && (grid[i, jFirstDiag] == 'o' || grid[i, jFirstDiag] == '+'))
                     return false;
             }

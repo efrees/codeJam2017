@@ -42,7 +42,7 @@ namespace QualificationTests
         }
         
         [Test]
-        public void upgrade_grid_if_it_improves_score()
+        public void add_models_when_it_improves_score()
         {
             var grid = new[,]
             {
@@ -51,6 +51,20 @@ namespace QualificationTests
             };
             var changes = ProgramD.GetChangesForBestScore(grid);
             CollectionAssert.AreEquivalent(new []{ "o 2 1", "+ 1 1" }, changes);
+        }
+
+        [Test]
+        public void overwrite_existing_when_necessary()
+        {
+            var grid = new[,]
+            {
+                {'.', 'x', '.'},
+                {'+', '+', '+'},
+                {'x', '.', '.'}
+            };
+
+            var changes = ProgramD.GetChangesForBestScore(grid);
+            CollectionAssert.AreEquivalent(new[] { "o 2 3" }, changes);
         }
     }
 }
