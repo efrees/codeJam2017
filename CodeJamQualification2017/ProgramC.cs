@@ -23,44 +23,37 @@ namespace CodeJamQualification2017
                 k++;
             }
         }
-
+        
         internal static string SolveCase(long numStalls, long numPeople)
         {
-            if (numStalls == numPeople)
-            {
-                return "0 0";
-            }
+            var fullLevels = CountFullLevels(numPeople);
+            var nextPowOf2 = (long)Math.Pow(2, fullLevels);
 
-            var orderedGaps = new List<long> { numStalls };
+            var numPeopleInFullLevels = nextPowOf2 - 1;
+            var numEmpty = numStalls - numPeopleInFullLevels;
 
-            var lastMax = 0L;
-            var lastMin = 0L;
+            var sizeOfGapsOnNextLevel = numEmpty / nextPowOf2; //rounding down
+            var howManyAreLargerGaps = numEmpty - (nextPowOf2 * sizeOfGapsOnNextLevel);
+            var numPeopleForNextLevel = numPeople - numPeopleInFullLevels;
 
-            while (numPeople > 0)
-            {
-                var bestGap = orderedGaps.First();
-                orderedGaps.RemoveAt(0);
+            var bestGap = numPeopleForNextLevel <= howManyAreLargerGaps ? sizeOfGapsOnNextLevel + 1 : sizeOfGapsOnNextLevel;
 
-                lastMin = (bestGap - 1) / 2;
-                lastMax = bestGap - lastMin - 1;
-
-                InsertOrdered(orderedGaps, lastMax);
-                InsertOrdered(orderedGaps, lastMin);
-                numPeople--;
-            }
-
+            var lastMin = (bestGap - 1) / 2;
+            var lastMax = bestGap - lastMin - 1;
             return $"{lastMax} {lastMin}";
         }
 
-        private static void InsertOrdered(List<long> orderedGapsDesc, long numToInsert)
+        private static long CountFullLevels(long numPeople)
         {
-            int i = 0;
-            while (i < orderedGapsDesc.Count && orderedGapsDesc[i] > numToInsert)
+            long pow = 1;
+            int count = 0;
+            while (pow < numPeople)
             {
-                i++;
+                numPeople -= pow;
+                pow *= 2;
+                count++;
             }
-
-            orderedGapsDesc.Insert(i, numToInsert);
+            return count;
         }
     }
 }
