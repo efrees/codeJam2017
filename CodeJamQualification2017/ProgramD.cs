@@ -24,15 +24,14 @@ namespace CodeJamQualification2017
 
                 for (var i = 0; i < prePlacements; i++)
                 {
-                    var modelDescriptor = Console.ReadLine().Split(' ');
-                    var modelRow = Convert.ToInt32(modelDescriptor[1]);
-                    var modelCol = Convert.ToInt32(modelDescriptor[2]);
-                    PlaceModel(modelDescriptor[0][0], modelRow, modelCol);
+                    var modelDescriptor = Console.ReadLine();
+                    var change = Change.Parse(modelDescriptor);
+                    change.ApplyOnGrid(_grid);
                 }
 
-                var changes = GetChangesForBestScore(_grid);
+                var changes = GetChangesForBestScoreBruteForce(_grid, N);
 
-                //Console.WriteLine(GridToString(_grid, N));
+                Console.WriteLine(GridToString(_grid, N));
 
                 var stylePoints = ScoreGrid(_grid);
                 Console.WriteLine($"Case #{k}: {stylePoints} {changes.Count}");
@@ -44,6 +43,98 @@ namespace CodeJamQualification2017
 
                 k++;
             }
+        }
+
+        public static List<Change> GetChangesForBestScoreBruteForce(char[,] grid, int N)
+        {
+            Change bestChange = null;
+            var bestDownstreamChanges = new List<Change>();
+            var bestScore = 0;
+
+            foreach (var change in ListAllValidMoves(grid, N))
+            {
+                change.ApplyOnGrid(grid);
+
+                var clonedGrid = CloneGrid(grid, N);
+                var changes = GetChangesForBestScoreBruteForce(clonedGrid, N);
+
+                var stylePoints = ScoreGrid(clonedGrid);
+
+                if (stylePoints > bestScore)
+                {
+                    bestChange = change;
+                    bestScore = stylePoints;
+                    bestDownstreamChanges = changes;
+                }
+
+                change.RevertOnGrid(grid);
+            }
+
+            if (bestChange != null)
+            {
+                bestDownstreamChanges.Insert(0, bestChange);
+
+                foreach (var change in bestDownstreamChanges)
+                {
+                    change.ApplyOnGrid(grid);
+                }
+            }
+
+            return bestDownstreamChanges;
+        }
+
+        private static IEnumerable<Change> ListAllValidMoves(char[,] grid, int N)
+        {
+            foreach (var coords in GenerateAllGridCoordinates(N))
+            {
+                var currentValue = grid[coords.Row, coords.Col];
+                if (currentValue == 'o') continue;
+
+                if (RowNotUsed(grid, coords)
+                    && ColNotUsed(grid, coords)
+                    && DiagonalNotUsed(grid, coords))
+                {
+                    yield return new Change
+                    {
+                        FromChar = currentValue,
+                        ToChar = 'o',
+                        Coords = coords
+                    };
+                }
+
+                if (currentValue != '.')
+                {
+                    continue;
+                }
+
+                if (RowNotUsed(grid, coords) && ColNotUsed(grid, coords))
+                {
+                    yield return new Change
+                    {
+                        FromChar = currentValue,
+                        ToChar = 'x',
+                        Coords = coords
+                    };
+                }
+
+                if (DiagonalNotUsed(grid, coords))
+                {
+                    yield return new Change
+                    {
+                        FromChar = currentValue,
+                        ToChar = '+',
+                        Coords = coords
+                    };
+                }
+            }
+        }
+
+        private static char[,] CloneGrid(char[,] grid, int n)
+        {
+            var clone = new char[n, n];
+            foreach (var coords in GenerateAllGridCoordinates(n))
+                clone[coords.Row, coords.Col] = grid[coords.Row, coords.Col];
+            return clone;
         }
 
         internal static IList<string> GetChangesForBestScore(char[,] grid)
@@ -127,7 +218,7 @@ namespace CodeJamQualification2017
             }
             return true;
         }
-        
+
         internal static int ScoreGrid(char[,] grid)
         {
             var score = 0;
@@ -141,12 +232,7 @@ namespace CodeJamQualification2017
             }
             return score;
         }
-
-        private static void PlaceModel(char model, int modelRow, int modelCol)
-        {
-            _grid[modelRow - 1, modelCol - 1] = model;
-        }
-
+        
         private static void InitializeEmptyGrid(int N)
         {
             _grid = new char[N, N];
@@ -182,6 +268,43 @@ namespace CodeJamQualification2017
                 sb.AppendLine();
             }
             return sb.ToString();
+        }
+    }
+
+    internal class Change
+    {
+        public char FromChar { get; set; }
+        public char ToChar { get; set; }
+        public GridCoordinates Coords { get; set; }
+
+        public override string ToString()
+        {
+            return $"{ToChar} {Coords.Row + 1} {Coords.Col + 1}";
+        }
+
+        public void ApplyOnGrid(char[,] grid)
+        {
+            grid[Coords.Row, Coords.Col] = ToChar;
+        }
+
+        public void RevertOnGrid(char[,] grid)
+        {
+            grid[Coords.Row, Coords.Col] = FromChar;
+        }
+
+        public static Change Parse(string descriptor)
+        {
+            var modelDescriptor = descriptor.Split(' ');
+            var coords = new GridCoordinates
+            {
+                Row = Convert.ToInt32(modelDescriptor[1]) - 1,
+                Col = Convert.ToInt32(modelDescriptor[2]) - 1
+            };
+            return new Change
+            {
+                ToChar = modelDescriptor[0][0],
+                Coords = coords
+            };
         }
     }
 

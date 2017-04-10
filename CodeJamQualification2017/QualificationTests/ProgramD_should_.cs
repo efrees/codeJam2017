@@ -1,4 +1,5 @@
-﻿using CodeJamQualification2017;
+﻿using System.Linq;
+using CodeJamQualification2017;
 using NUnit.Framework;
 
 namespace QualificationTests
@@ -63,8 +64,8 @@ namespace QualificationTests
                 {'x', '.', '.'}
             };
 
-            var changes = ProgramD.GetChangesForBestScore(grid);
-            CollectionAssert.AreEquivalent(new[] { "o 2 3" }, changes);
+            var changes = ProgramD.GetChangesForBestScoreBruteForce(grid, 3);
+            CollectionAssert.AreEquivalent(new[] { "o 2 3" }, changes.Select(c => c.ToString()));
         }
     }
 }
