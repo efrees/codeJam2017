@@ -4,11 +4,11 @@ using System.Text;
 
 namespace CodeJamQualification2017
 {
-    class ProgramD
+    class ProgramDPostContest
     {
         private static char[,] _grid;
 
-        static void MainD(string[] args)
+        static void Main(string[] args)
         {
             var input = Console.ReadLine();
             var T = Convert.ToInt32(input);
@@ -30,11 +30,11 @@ namespace CodeJamQualification2017
                     PlaceModel(modelDescriptor[0][0], modelRow, modelCol);
                 }
 
-                var changes = GetChangesForBestScore(_grid);
+                var optimalSolution = GetOptimalSolution(_grid);
 
-                //Console.WriteLine(GridToString(_grid, N));
+                var stylePoints = ScoreGrid(optimalSolution);
+                var changes = GetChangesFromInitial(_grid, optimalSolution);
 
-                var stylePoints = ScoreGrid(_grid);
                 Console.WriteLine($"Case #{k}: {stylePoints} {changes.Count}");
 
                 foreach (var change in changes)
@@ -46,64 +46,111 @@ namespace CodeJamQualification2017
             }
         }
 
-        internal static IList<string> GetChangesForBestScore(char[,] grid)
+        internal static char[,] GetOptimalSolution(char[,] grid)
         {
-            var changes = new List<string>();
+            var rookSolution = SolveRookSubProblem(grid);
+            var bishopSolution = SolveBishopSubProblem(grid);
+            var mergedSolution = MergeSubProblemSolutions(rookSolution, bishopSolution);
+            return mergedSolution;
+        }
 
-            var N = (int)Math.Sqrt(grid.Length);
-            foreach (var coords in GenerateAllGridCoordinates(N))
+        internal static char[,] SolveRookSubProblem(char[,] initialGrid)
+        {
+            var N = (int)Math.Sqrt(initialGrid.Length);
+            var gridCopy = new char[N, N];
+            foreach (var coord in GenerateAllGridCoordinates(N))
             {
-                var currentValue = grid[coords.Row, coords.Col];
-                if (currentValue == 'o') continue;
+                var isRook = initialGrid[coord.Row, coord.Col] == 'o' || initialGrid[coord.Row, coord.Col] == 'x';
+                gridCopy[coord.Row, coord.Col] = isRook ? 'x' : '.';
+            }
 
-                if (RowNotUsed(grid, coords)
-                    && ColNotUsed(grid, coords)
-                    && DiagonalNotUsed(grid, coords))
+            foreach (var coord in GenerateAllGridCoordinates(N))
+            {
+                if (RowAndColNotUsed(gridCopy, coord))
                 {
-                    grid[coords.Row, coords.Col] = 'o';
-                    changes.Add($"o {coords.Row + 1} {coords.Col + 1}");
-                }
-                else if (currentValue != '.')
-                {
-                    continue;
-                }
-                else if (RowNotUsed(grid, coords)
-                         && ColNotUsed(grid, coords))
-                {
-                    grid[coords.Row, coords.Col] = 'x';
-                    changes.Add($"x {coords.Row + 1} {coords.Col + 1}");
-                }
-                else if (DiagonalNotUsed(grid, coords))
-                {
-                    grid[coords.Row, coords.Col] = '+';
-                    changes.Add($"+ {coords.Row + 1} {coords.Col + 1}");
+                    gridCopy[coord.Row, coord.Col] = 'x';
                 }
             }
 
+            return gridCopy;
+        }
+
+        internal static char[,] SolveBishopSubProblem(char[,] initialGrid)
+        {
+            var N = (int)Math.Sqrt(initialGrid.Length);
+            var gridCopy = new char[N, N];
+            foreach (var coord in GenerateAllGridCoordinates(N))
+            {
+                var isBishop = initialGrid[coord.Row, coord.Col] == 'o' || initialGrid[coord.Row, coord.Col] == '+';
+                gridCopy[coord.Row, coord.Col] = isBishop ? '+' : '.';
+            }
+
+            //Shortest diagonals first
+            for (var i = N - 1; i >= 0; i--)
+            {
+                for (var j = 0; j + i < N; j++)
+                {
+                    var diagCoord = new GridCoordinates { Row = j, Col = j + i };
+                    if (DiagonalNotUsed(gridCopy, diagCoord))
+                    {
+                        gridCopy[diagCoord.Row, diagCoord.Col] = '+';
+                        break;
+                    }
+                }
+
+                for (var j = 0; j + i < N; j++)
+                {
+                    var diagCoord = new GridCoordinates { Row = N - j - 1, Col = N - i - 1 };
+                    if (DiagonalNotUsed(gridCopy, diagCoord))
+                    {
+                        gridCopy[diagCoord.Row, diagCoord.Col] = '+';
+                        break;
+                    }
+                }
+            }
+
+            return gridCopy;
+        }
+
+        internal static char[,] MergeSubProblemSolutions(char[,] rookSolution, char[,] bishopSolution)
+        {
+            var N = (int)Math.Sqrt(rookSolution.Length);
+            foreach (var coords in GenerateAllGridCoordinates(N))
+            {
+                rookSolution[coords.Row, coords.Col] = MergeCell(rookSolution[coords.Row, coords.Col],
+                    bishopSolution[coords.Row, coords.Col]);
+            }
+            return rookSolution;
+        }
+
+        private static char MergeCell(char c1, char c2)
+        {
+            if (c1 == '.') return c2;
+            if (c2 == '.') return c1;
+            return 'o';
+        }
+
+        internal static IList<string> GetChangesFromInitial(char[,] initialGrid, char[,] finalSolution)
+        {
+            var changes = new List<string>();
+            var N = (int)Math.Sqrt(initialGrid.Length);
+            foreach (var coords in GenerateAllGridCoordinates(N))
+            {
+                if (finalSolution[coords.Row, coords.Col] != initialGrid[coords.Row, coords.Col])
+                {
+                    changes.Add($"{finalSolution[coords.Row, coords.Col]} {coords.Row + 1} {coords.Col + 1}");
+                }
+            }
             return changes;
         }
 
-        private static bool RowNotUsed(char[,] grid, GridCoordinates coords)
-        {
-            var N = (int)Math.Sqrt(grid.Length);
-            for (var j = 0; j < N; j++)
-            {
-                if (j == coords.Col) continue;
-
-                if (grid[coords.Row, j] == 'o' || grid[coords.Row, j] == 'x')
-                    return false;
-            }
-            return true;
-        }
-
-        private static bool ColNotUsed(char[,] grid, GridCoordinates coords)
+        private static bool RowAndColNotUsed(char[,] grid, GridCoordinates coords)
         {
             var N = (int)Math.Sqrt(grid.Length);
             for (var i = 0; i < N; i++)
             {
-                if (i == coords.Row) continue;
-
-                if (grid[i, coords.Col] == 'o' || grid[i, coords.Col] == 'x')
+                if (grid[coords.Row, i] == 'o' || grid[coords.Row, i] == 'x'
+                   || grid[i, coords.Col] == 'o' || grid[i, coords.Col] == 'x')
                     return false;
             }
             return true;
@@ -117,17 +164,15 @@ namespace CodeJamQualification2017
                 var jFirstDiag = i - coords.Row + coords.Col;
                 var jSecondDiag = coords.Row + coords.Col - i;
                 if (jSecondDiag >= 0 && jSecondDiag < N
-                    && jSecondDiag != coords.Col
                     && (grid[i, jSecondDiag] == 'o' || grid[i, jSecondDiag] == '+'))
                     return false;
                 if (jFirstDiag >= 0 && jFirstDiag < N
-                    && jFirstDiag != coords.Col
                     && (grid[i, jFirstDiag] == 'o' || grid[i, jFirstDiag] == '+'))
                     return false;
             }
             return true;
         }
-        
+
         internal static int ScoreGrid(char[,] grid)
         {
             var score = 0;

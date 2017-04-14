@@ -43,6 +43,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GridCoordinates.cs" />
+    <Compile Include="ProgramDPostContest.cs" />
     <Compile Include="ProgramD.cs" />
     <Compile Include="ProgramC.cs" />
     <Compile Include="ProgramB.cs" />
