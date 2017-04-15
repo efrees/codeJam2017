@@ -5,7 +5,7 @@ namespace RoundOne
 {
     internal class ProgramC
     {
-        static void Main(string[] args)
+        static void MainC(string[] args)
         {
             var input = Console.ReadLine();
             var T = Convert.ToInt32(input);
@@ -67,6 +67,7 @@ namespace RoundOne
         {
             var debuffResult = new BattleSearchNode
             {
+                ActionName = "Debuff",
                 OriginalDragonHealth = OriginalDragonHealth,
                 DragonHealth = DragonHealth,
                 DragonAttack = DragonAttack,
@@ -81,10 +82,13 @@ namespace RoundOne
             return debuffResult;
         }
 
+        public string ActionName { get; set; }
+
         private BattleSearchNode GetCureChild()
         {
             var cureResult = new BattleSearchNode
             {
+                ActionName = "Cure",
                 OriginalDragonHealth = OriginalDragonHealth,
                 DragonHealth = OriginalDragonHealth,
                 DragonAttack = DragonAttack,
@@ -103,6 +107,7 @@ namespace RoundOne
         {
             var buffResult = new BattleSearchNode
             {
+                ActionName = "Buff",
                 OriginalDragonHealth = OriginalDragonHealth,
                 DragonHealth = DragonHealth,
                 DragonAttack = DragonAttack + Buff,
@@ -121,6 +126,7 @@ namespace RoundOne
         {
             var attackResult = new BattleSearchNode
             {
+                ActionName = "Attack",
                 OriginalDragonHealth = OriginalDragonHealth,
                 DragonHealth = DragonHealth,
                 DragonAttack = DragonAttack,
