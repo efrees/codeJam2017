@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AdventOfCode2016.Searchers
+namespace RoundOne
 {
     public abstract class SearchNode<T> where T : SearchNode<T>
     {

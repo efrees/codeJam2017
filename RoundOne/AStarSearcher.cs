@@ -1,41 +1,33 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Priority_Queue;
 
 namespace RoundOne
 {
-    internal class BreadthFirstSearcher<T> where T : SearchNode<T>
+    internal class AStarSearcher<T> where T : SearchNode<T>
     {
+        private readonly ISearchHeuristic<T> _searchHeuristic;
         public T StartNode { get; }
         public int DepthLimit { get; }
-        public Queue<T> SearchQueue { get; } = new Queue<T>();
-        public virtual ISet<T> VisitedNodes { get; } = new HashSet<T>();
+        //OptimizedPriorityQueue on NuGet.org
+        public IPriorityQueue<T, float> SearchQueue { get; } = new SimplePriorityQueue<T>();
 
-        public BreadthFirstSearcher(T startNode)
+        public AStarSearcher(T startNode, ISearchHeuristic<T> searchHeuristic)
         {
+            _searchHeuristic = searchHeuristic;
             StartNode = startNode;
-        }
-
-        public BreadthFirstSearcher(T startNode, int depthLimit)
-        {
-            StartNode = startNode;
-            DepthLimit = depthLimit;
         }
 
         public virtual IList<T> GetShortestPathToNode(T targetNode)
         {
-            SearchQueue.Enqueue(StartNode);
+            SearchQueue.Enqueue(StartNode, (float)EstimateCost(StartNode, targetNode));
 
             while (SearchQueue.Any())
             {
                 var currentNode = SearchQueue.Dequeue();
 
-                if (VisitedNodes.Contains(currentNode))
-                    continue;
-
                 if (NodeIsBeyondDepthLimit(currentNode))
                     break;
-
-                VisitedNodes.Add(currentNode);
 
                 if (currentNode.Equals(targetNode))
                 {
@@ -47,11 +39,17 @@ namespace RoundOne
                 foreach (var child in children)
                 {
                     child.StoreParentNode(currentNode);
-                    SearchQueue.Enqueue(child);
+                    var priority = child.LengthOfPathToHere + EstimateCost(child, targetNode);
+                    SearchQueue.Enqueue(child, (float)priority);
                 }
             }
 
             return new List<T>();
+        }
+
+        private double EstimateCost(T searchNode, T targetNode)
+        {
+            return _searchHeuristic.EstimateSearchCost(searchNode, targetNode);
         }
 
         private bool NodeIsBeyondDepthLimit(T currentNode)

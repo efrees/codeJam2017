@@ -7,7 +7,7 @@ namespace RoundOne
 {
     class ProgramA
     {
-        static void Main(string[] args)
+        static void MainA(string[] args)
         {
             var input = Console.ReadLine();
             var T = Convert.ToInt32(input);
