@@ -1,5 +1,9 @@
+, Attack, Attack, Cure, Attack, Attack
 Case #1: 5
+, Buff, Attack
 Case #2: 2
 Case #3: IMPOSSIBLE
+, Debuff, Attack, Buff, Attack, Attack
 Case #4: 5
+, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack, Attack
 Case #5: 100

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RoundOne
 {
     internal class ProgramC
     {
-        static void MainC(string[] args)
+        static void Main(string[] args)
         {
             var input = Console.ReadLine();
             var T = Convert.ToInt32(input);
@@ -23,6 +24,11 @@ namespace RoundOne
         internal static string ProcessTestCase()
         {
             var parameters = Console.ReadLine().Split(' ');
+            return ProcessTestCaseInternal(parameters);
+        }
+
+        internal static string ProcessTestCaseInternal(string[] parameters)
+        {
             var startNode = new BattleSearchNode
             {
                 DragonHealth = Convert.ToInt32(parameters[0]),
@@ -43,6 +49,7 @@ namespace RoundOne
                 return "IMPOSSIBLE";
             }
 
+            //Console.WriteLine(string.Join(", ", path.Select(p => p.ActionName)));
             return (path.Count - 1).ToString();
         }
     }
@@ -57,9 +64,9 @@ namespace RoundOne
             return new[]
             {
                 GetAttackChild(),
+                GetDebuffChild(),
                 GetBuffChild(),
                 GetCureChild(),
-                GetDebuffChild()
             };
         }
 
@@ -130,7 +137,7 @@ namespace RoundOne
                 OriginalDragonHealth = OriginalDragonHealth,
                 DragonHealth = DragonHealth,
                 DragonAttack = DragonAttack,
-                KnightHealth = KnightHealth - DragonAttack,
+                KnightHealth = Math.Max(0,KnightHealth - DragonAttack),
                 KnightAttack = KnightAttack,
                 Buff = Buff,
                 Debuff = Debuff
@@ -165,7 +172,8 @@ namespace RoundOne
                 return DragonHealth.Equals(otherNode.DragonHealth)
                        && DragonAttack.Equals(otherNode.DragonAttack)
                        && KnightHealth.Equals(otherNode.KnightHealth)
-                       && KnightAttack.Equals(otherNode.KnightAttack);
+                       && KnightAttack.Equals(otherNode.KnightAttack)
+                       && (ActionName ?? "").Equals(otherNode.ActionName ?? "");
             }
 
             return base.Equals(obj);
@@ -173,7 +181,120 @@ namespace RoundOne
 
         public override int GetHashCode()
         {
-            return ((DragonHealth * 71 + DragonAttack) * 71 + KnightHealth) * 71 + KnightAttack;
+            return ((DragonHealth * 71 + DragonAttack) * 71 + KnightHealth) * 71 + KnightAttack + (ActionName ?? "").GetHashCode();
+        }
+    }
+
+    internal class BreadthFirstSearcher<T> where T : SearchNode<T>
+    {
+        public T StartNode { get; }
+        public int DepthLimit { get; }
+        public Queue<T> SearchQueue { get; } = new Queue<T>();
+        public virtual ISet<T> VisitedNodes { get; } = new HashSet<T>();
+
+        public BreadthFirstSearcher(T startNode)
+        {
+            StartNode = startNode;
+        }
+
+        public BreadthFirstSearcher(T startNode, int depthLimit)
+        {
+            StartNode = startNode;
+            DepthLimit = depthLimit;
+        }
+
+        public virtual IList<T> GetShortestPathToNode(T targetNode)
+        {
+            SearchQueue.Enqueue(StartNode);
+
+            while (SearchQueue.Any())
+            {
+                var currentNode = SearchQueue.Dequeue();
+
+                if (VisitedNodes.Contains(currentNode))
+                    continue;
+
+                if (NodeIsBeyondDepthLimit(currentNode))
+                    break;
+
+                VisitedNodes.Add(currentNode);
+
+                if (currentNode.Equals(targetNode))
+                {
+                    return currentNode.GetPathToHere();
+                }
+
+                var children = currentNode.GetChildren();
+
+                foreach (var child in children)
+                {
+                    child.StoreParentNode(currentNode);
+                    SearchQueue.Enqueue(child);
+                }
+            }
+
+            return new List<T>();
+        }
+
+        private bool NodeIsBeyondDepthLimit(T currentNode)
+        {
+            if (DepthLimit == 0)
+                return false;
+
+            return currentNode.LengthOfPathToHere > DepthLimit + 1;
+        }
+    }
+
+
+    public abstract class SearchNode<T> where T : SearchNode<T>
+    {
+        private T _parentNode;
+
+        public abstract IEnumerable<T> GetChildren();
+
+        public int LengthOfPathToHere { get; private set; } = 1;
+
+        public virtual void StoreParentNode(T parentNode)
+        {
+            _parentNode = parentNode;
+            LengthOfPathToHere = parentNode.LengthOfPathToHere + 1;
+        }
+
+        public IList<T> GetPathToHere()
+        {
+            return EnumerateParentsBackToRoot()
+                .Reverse()
+                .ToList();
+        }
+
+        private IEnumerable<T> EnumerateParentsBackToRoot()
+        {
+            yield return this as T;
+            var currentNode = this;
+            while (currentNode.HasParentStored())
+            {
+                yield return currentNode._parentNode;
+
+                currentNode = currentNode._parentNode;
+            }
+        }
+
+        private bool HasParentStored()
+        {
+            return _parentNode != null;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is SearchNode<T>)
+                throw new NotImplementedException("A subclass of SearchNode must override Equals() and GetHashCode()");
+
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException("A subclass of SearchNode must override Equals() and GetHashCode()");
         }
     }
 }
