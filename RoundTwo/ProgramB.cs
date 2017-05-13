@@ -60,6 +60,7 @@ namespace RoundTwo
                 ? ticketsByCustomer[c2Key].OrderByDescending(t => t.Seat).ToList()
                 : new List<Ticket>();
 
+            //Attempt to maximize matches (without promotion)
             var orderedC1Tickets = ticketsByCustomer[c1Key].OrderBy(t => t.Seat).ToList();
             foreach (var c2Ticket in orderedC2Tickets)
             {
@@ -87,7 +88,8 @@ namespace RoundTwo
                 }
             }
 
-            rideCount += orderedC2Tickets.Where(t => t.MatchedWithTicket == null).Count();
+            rideCount += orderedC2Tickets.Where(t => t.MatchedWithTicket == null).Count()
+                + orderedC1Tickets.Where(t => t.MatchedWithTicket == null).Count();
 
             return $"{rideCount} {promotionCount}";
         }
