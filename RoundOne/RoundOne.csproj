@@ -33,6 +33,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Priority Queue, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\OptimizedPriorityQueue.4.0.0\lib\net45\Priority Queue.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -43,11 +47,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AStarSearcher.cs" />
+    <Compile Include="BreadthFirstSearcher.cs" />
+    <Compile Include="ISearchHeuristic.cs" />
     <Compile Include="ProgramA.cs" />
+    <Compile Include="ProgramC.cs" />
+    <Compile Include="ProgramB.cs" />
+    <Compile Include="ProgramEmpty.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SearchNode.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
